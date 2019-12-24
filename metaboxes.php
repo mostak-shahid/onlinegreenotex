@@ -37,7 +37,7 @@ function onlinegreenotex_metaboxes() {
     ));
     $product_details->add_field( array(
         'name' => 'Details',
-        'id'   => $prefix . 'product_detgails',
+        'id'   => $prefix . 'product_details',
         'desc'    => 'Upload a ODF or enter an URL.',
         'type'    => 'file',
     )); 

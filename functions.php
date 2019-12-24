@@ -2,6 +2,10 @@
 function onlinegreenotex_enqueue_scripts(){
 	wp_enqueue_style( 'bootstrap.min', plugins_url( 'css/bootstrap.min.css', __FILE__ ) );
 	wp_enqueue_style( 'onlinegreenotex', plugins_url( 'css/onlinegreenotex.css', __FILE__ ) );
+
+	wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'onlinegreenotex', plugins_url( 'js/onlinegreenotex.js', __FILE__ ), array('jquery') );
+	wp_enqueue_script( 'bootstrap.min', plugins_url( 'js/bootstrap.min.js', __FILE__ ), array('jquery') );
 }
 add_action( 'wp_enqueue_scripts', 'onlinegreenotex_enqueue_scripts' );
 

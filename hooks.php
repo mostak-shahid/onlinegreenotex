@@ -214,4 +214,83 @@ function product_subcatalogue_endpoint_content() {
 	<?php
 }
 add_action( 'woocommerce_account_product-subcatalogue_endpoint', 'product_subcatalogue_endpoint_content' );
+
+function product_group_endpoint_content() {
+	$brand = $_GET['brand'];
+	// echo $brand;
+	$args = array(
+		'post_type' => 'product',
+		'posts_per_page' => -1,
+		'tax_query' => array(
+	        array(
+	            'taxonomy' => 'product-brand',
+	            'field'    => 'id',
+	            'terms'    => $brand,
+	        ),
+	    ),
+	);
+	// The Query
+	$the_query = new WP_Query( $args ); ?>
+	<!-- Modal -->
+	<div class="modal fade" id="productDetails" tabindex="-1" role="dialog" aria-labelledby="productDetailsLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-body">
+					Details
+				</div>
+			</div>
+		</div>
+	</div>
+	<table class="table table-striped">
+		<thead class="thead-dark">
+			<tr>
+				<th scope="col">#</th>
+				<th scope="col">Design NO</th>
+				<th scope="col">Label Code</th>
+				<th scope="col">Label Name</th>
+				<th scope="col">Packing Qty</th>
+				<th scope="col">Packing Unit</th>
+				<th scope="col">Specifications</th>
+				<th scope="col"></th>
+			</tr>
+		</thead>
+		<tbody>
+	<?php if ( $the_query->have_posts() ) : ?>
+		<?php $n = 1; ?>
+	    <?php while ( $the_query->have_posts() ) : $the_query->the_post(); ?>
+	    	<?php
+	    	//_onlinegreenotex_product_design_no
+	    	$design_no = get_post_meta( get_the_ID(), '_onlinegreenotex_product_design_no', true );
+	    	$label_code = get_post_meta( get_the_ID(), '_onlinegreenotex_product_label_code', true );
+	    	$label_name = get_post_meta( get_the_ID(), '_onlinegreenotex_product_label_name', true );
+	    	$packing_qty = get_post_meta( get_the_ID(), '_onlinegreenotex_product_packing_qty', true );
+	    	$packing_unit = get_post_meta( get_the_ID(), '_onlinegreenotex_product_packing_unit', true );
+	    	$details = get_post_meta( get_the_ID(), '_onlinegreenotex_product_details', true );
+	    	?>
+	        <tr>
+	        	<th scope="row"><?php echo $n ?></th>
+	        	<td><?php echo @$design_no ?></td>
+	        	<td><?php echo @$label_code ?></td>
+	        	<td><?php echo @$label_name ?></td>
+	        	<td><?php echo @$packing_qty ?></td>
+	        	<td><?php echo @$packing_unit ?></td>
+	        	<td>
+	        	<?php if ($details) : ?>
+	        		<a href="<?php echo @$details ?>" target="_blank">View</a>
+	        	<?php endif; ?>
+	        	</td>
+	        	<td>
+	        		<a class="view-product-variation" href="javascript:void(0)" data-toggle="modal" data-target="#productDetails" data-product="<?php echo get_the_ID() ?>">View</a>
+	        	</td>
+	        </tr>
+	        <?php $n++; ?>
+	    <?php endwhile; ?>
+	<?php else : ?>
+	    no posts found
+	<?php endif; ?>
+		</tbody>
+	</table>
+	<?php wp_reset_postdata();
+}
+add_action( 'woocommerce_account_product-group_endpoint', 'product_group_endpoint_content' );
 /*WooCommerce*/
