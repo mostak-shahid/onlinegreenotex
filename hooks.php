@@ -1,6 +1,34 @@
 <?php
-
-
+function v_getUrl() {
+  $url  = isset( $_SERVER['HTTPS'] ) && 'on' === $_SERVER['HTTPS'] ? 'https' : 'http';
+  $url .= '://' . $_SERVER['SERVER_NAME'];
+  $url .= in_array( $_SERVER['SERVER_PORT'], array('80', '443') ) ? '' : ':' . $_SERVER['SERVER_PORT'];
+  $url .= $_SERVER['REQUEST_URI'];
+  return $url;
+}
+function v_forcelogin() {
+  if( !is_user_logged_in() ) {
+    $url = v_getUrl();
+    $whitelist = apply_filters('v_forcelogin_whitelist', array());
+    $redirect_url = apply_filters('v_forcelogin_redirect', $url);
+    if( preg_replace('/\?.*/', '', $url) != preg_replace('/\?.*/', '', wp_login_url()) && !in_array($url, $whitelist) ) {
+      wp_safe_redirect( wp_login_url( $redirect_url ), 302 ); exit();
+    }
+  }
+}
+add_action('init', 'v_forcelogin');
+function woocommerce_disable_shop_page() {
+	$user = wp_get_current_user();
+	if ( !in_array( 'administrator', (array) $user->roles ) ) {
+	    global $post;
+	    if (is_shop()):
+	    global $wp_query;
+	    $wp_query->set_404();
+	    status_header(404);
+	    endif;	    
+	}
+}
+add_action( 'wp', 'woocommerce_disable_shop_page' );
 /*WooCommerce*/
 /**
  * Register new endpoint to use inside My Account page.
@@ -134,13 +162,13 @@ function product_catalogue_endpoint_content() {
 	}
 	// var_dump($brands);
 	?>
-	<table class="table table-striped">
-		<thead class="thead-dark">
+	<table class="woocommerce-orders-table shop_table shop_table_responsive account-orders-table">
+		<thead>
 			<tr>
-				<th scope="col">#</th>
-				<th scope="col">Catalog Name</th>
-				<th scope="col">Details</th>
-				<th scope="col"></th>
+				<th>#</th>
+				<th>Catalog Name</th>
+				<th>Details</th>
+				<th>Action</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -152,16 +180,16 @@ function product_catalogue_endpoint_content() {
 				$child_term = get_term_children( $brand, 'product-brand' );
 				?>
 				<tr>
-					<th scope="row"><?php echo $n ?></th>
-					<td><?php echo $details->name ?></td>
-					<td>
+					<td data-title="#"><strong><?php echo $n ?></strong></td>
+					<td data-title="Catalog Name"><?php echo $details->name ?></td>
+					<td data-title="Details">
 						<?php if($child_term) : ?>
 							<a href="<?php echo home_url( '/my-account/' ); ?>product-subcatalogue?brand=<?php echo $details->term_id ?>">Details :<?php echo sizeof($child_term) ?></a>
 						<?php else: ?>
 							No Details
 						<?php endif; ?>	
 					</td>
-					<td><a href="<?php echo home_url( '/my-account/' ); ?>product-group?brand=<?php echo $details->term_id ?>">View</a></td>
+					<td data-title="Action"><a class="button" href="<?php echo home_url( '/my-account/' ); ?>product-group?brand=<?php echo $details->term_id ?>">View</a></td>
 				</tr>
 				<?php $n++; ?>
 			<?php endforeach; ?>
@@ -177,13 +205,13 @@ function product_subcatalogue_endpoint_content() {
 	$brand = $_GET['brand'];
 	$brands = get_term_children( $brand, 'product-brand' );
 	?>
-	<table class="table table-striped">
-		<thead class="thead-dark">
+	<table class="woocommerce-orders-table shop_table shop_table_responsive account-orders-table">
+		<thead>
 			<tr>
-				<th scope="col">#</th>
-				<th scope="col">Catalog Name</th>
-				<th scope="col">Details</th>
-				<th scope="col"></th>
+				<th>#</th>
+				<th>Catalog Name</th>
+				<th>Details</th>
+				<th>Action</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -195,16 +223,16 @@ function product_subcatalogue_endpoint_content() {
 				$child_term = get_term_children( $brand, 'product-brand' );
 				?>
 				<tr>
-					<th scope="row"><?php echo $n ?></th>
-					<td><?php echo $details->name ?></td>
-					<td>
+					<td data-title="#"><strong><?php echo $n ?></strong></td>
+					<td data-title="Catalog Name"><?php echo $details->name ?></td>
+					<td data-title="Details">
 						<?php if($child_term) : ?>
 							<a href="<?php echo home_url( '/my-account/' ); ?>product-subcatalogue?brand=<?php echo $details->term_id ?>">Details :<?php echo sizeof($child_term) ?></a>
 						<?php else: ?>
 							No Details
 						<?php endif; ?>	
 					</td>
-					<td><a href="<?php echo home_url( '/my-account/' ); ?>product-group?brand=<?php echo $details->term_id ?>">View</a></td>
+					<td data-title="Action"><a class="button" href="<?php echo home_url( '/my-account/' ); ?>product-group?brand=<?php echo $details->term_id ?>">View</a></td>
 				</tr>
 				<?php $n++; ?>
 			<?php endforeach; ?>
@@ -232,26 +260,20 @@ function product_group_endpoint_content() {
 	// The Query
 	$the_query = new WP_Query( $args ); ?>
 	<!-- Modal -->
-	<div class="modal fade" id="productDetails" tabindex="-1" role="dialog" aria-labelledby="productDetailsLabel" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered" role="document">
-			<div class="modal-content">
-				<div class="modal-body">
-					Details
-				</div>
-			</div>
-		</div>
+	<div id="dialog" title="Basic dialog">
+		<div class="result"></div>
 	</div>
-	<table class="table table-striped">
-		<thead class="thead-dark">
+	<table class="woocommerce-orders-table shop_table shop_table_responsive account-orders-table">
+		<thead>
 			<tr>
-				<th scope="col">#</th>
-				<th scope="col">Design NO</th>
-				<th scope="col">Label Code</th>
-				<th scope="col">Label Name</th>
-				<th scope="col">Packing Qty</th>
-				<th scope="col">Packing Unit</th>
-				<th scope="col">Specifications</th>
-				<th scope="col"></th>
+				<th>#</th>
+				<th>Design NO</th>
+				<th>Label Code</th>
+				<th>Label Name</th>
+				<th>Packing Qty</th>
+				<th>Packing Unit</th>
+				<th>Specifications</th>
+				<th>Action</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -268,19 +290,21 @@ function product_group_endpoint_content() {
 	    	$details = get_post_meta( get_the_ID(), '_onlinegreenotex_product_details', true );
 	    	?>
 	        <tr>
-	        	<th scope="row"><?php echo $n ?></th>
-	        	<td><?php echo @$design_no ?></td>
-	        	<td><?php echo @$label_code ?></td>
-	        	<td><?php echo @$label_name ?></td>
-	        	<td><?php echo @$packing_qty ?></td>
-	        	<td><?php echo @$packing_unit ?></td>
-	        	<td>
+	        	<td data-title="#"><strong><?php echo $n ?></strong></td>
+	        	<td data-title="Design NO">
+	        		<a href="<?php echo home_url('/cart/') ?>?add-to-cart=<?php echo get_the_ID() ?>" data-quantity="1" class="" data-product_id="<?php echo get_the_ID() ?>"><i class="fa fa-shopping-cart"></i></a> <?php echo @$design_no ?>	        		
+	        	</td>
+	        	<td data-title="Label Code"><?php echo @$label_code ?></td>
+	        	<td data-title="Label Name"><?php echo @$label_name ?></td>
+	        	<td data-title="Packing Qty"><?php echo @$packing_qty ?></td>
+	        	<td data-title="Packing Unit"><?php echo @$packing_unit ?></td>
+	        	<td data-title="Specifications">
 	        	<?php if ($details) : ?>
 	        		<a href="<?php echo @$details ?>" target="_blank">View</a>
 	        	<?php endif; ?>
 	        	</td>
-	        	<td>
-	        		<a class="view-product-variation" href="javascript:void(0)" data-toggle="modal" data-target="#productDetails" data-product="<?php echo get_the_ID() ?>">View</a>
+	        	<td data-title="Action">
+	        		<a class="view-product-variation button" href="javascript:void(0)" data-toggle="modal" data-target="#productDetails" data-product="<?php echo get_the_ID() ?>">View</a>
 	        	</td>
 	        </tr>
 	        <?php $n++; ?>

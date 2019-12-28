@@ -38,8 +38,20 @@ function onlinegreenotex_metaboxes() {
     $product_details->add_field( array(
         'name' => 'Details',
         'id'   => $prefix . 'product_details',
-        'desc'    => 'Upload a ODF or enter an URL.',
+        'desc'    => 'Upload a PDF or enter an URL.',
         'type'    => 'file',
+        'text'    => array(
+            'add_upload_file_text' => 'Add or Upload PDF File' // Change upload button text. Default: "Add or Upload File"
+        ),
+        /*'query_args' => array(
+            'type' => 'application/pdf', // Make library only display PDFs.
+            // Or only allow gif, jpg, or png images
+            // 'type' => array(
+            //  'image/gif',
+            //  'image/jpeg',
+            //  'image/png',
+            // ),
+        ),*/
     )); 
 
     $product_details_id = $product_details->add_field( array(
