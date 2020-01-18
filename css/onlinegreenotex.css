@@ -1,1 +1,5 @@
 .woocommerce-account table.account-orders-table .button{white-space: nowrap;}
+.ui-dialog .ui-dialog-content{padding: 0;}
+@media (max-width:767.98px){
+	.woocommerce table.shop_table_responsive tr td, .woocommerce-page table.shop_table_responsive tr td{padding: 3px;}
+}

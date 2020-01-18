@@ -317,4 +317,40 @@ function product_group_endpoint_content() {
 	<?php wp_reset_postdata();
 }
 add_action( 'woocommerce_account_product-group_endpoint', 'product_group_endpoint_content' );
+
+add_filter( 'woocommerce_valid_order_statuses_for_cancel', 'filter_valid_order_statuses_for_cancel', 20, 2 );
+function filter_valid_order_statuses_for_cancel( $statuses, $order = '' ){
+
+    // Set HERE the order statuses where you want the cancel button to appear
+    $custom_statuses    = array( 'pending', 'processing', 'on-hold', 'failed' );
+
+    // Set HERE the delay (in days)
+    $duration = 3; // 3 days
+
+    // UPDATE: Get the order ID and the WC_Order object
+    if( ! is_object( $order ) && isset($_GET['order_id']) )
+        $order = wc_get_order( absint( $_GET['order_id'] ) );
+
+    $delay = $duration*24*60*60; // (duration in seconds)
+    $date_created_time  = strtotime($order->get_date_created()); // Creation date time stamp
+    $date_modified_time = strtotime($order->get_date_modified()); // Modified date time stamp
+    $now = strtotime("now"); // Now  time stamp
+
+    // Using Creation date time stamp
+    if ( ( $date_created_time + $delay ) >= $now ) return $custom_statuses;
+    else return $statuses;
+}
 /*WooCommerce*/
+/*Login*/
+function my_login_logo() { ?>
+    <style type="text/css">
+        #login h1 a, .login h1 a {
+            background-image: url(http://online.aiscript.net/wp-content/uploads/2020/01/cropped-logo.png);		
+			width:auto;
+			background-size: contain;
+			background-repeat: no-repeat;
+        	padding-bottom: 30px;
+        }
+    </style>
+<?php }
+add_action( 'login_enqueue_scripts', 'my_login_logo' );

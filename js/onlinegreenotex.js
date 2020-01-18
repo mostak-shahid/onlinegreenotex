@@ -1,5 +1,8 @@
 jQuery(document).ready(function($) {
 	$( "#dialog" ).dialog({
+
+		resizable: false,        
+
     	height: "auto",
     	width: "auto",
 		modal: true,
